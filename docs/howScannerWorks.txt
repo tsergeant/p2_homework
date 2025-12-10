@@ -1,0 +1,270 @@
+THE PROBLEM
+One way to interact with a keyboard (or a file) in Java is to use
+the Scanner class. To see a simple example of Scanner used to read
+values from the keyboard see Bart1.java.
+
+The purpose of this document is to provide insight into how Scanner
+works so you will be able to navigate otherwise frustrating
+situations. To start off this discussion take a look again at the
+source code in Bart1.java. Then run the program and verify that
+it works as expected.
+
+Now take a look at Bart2.java. The ONLY DIFFERENCE between Bart1.java
+and Bart2.java is the order in which the user is asked to enter
+values has been switched. In Bart1.java we ask for a message and then
+ask for how many times the message should be displayed. In Bart2.java
+we ask how many times the message should be displayed and then we
+ask for the message. Now compile and run Bart2.java and see that the
+program does not work as expected.
+
+If you understand why Bart2.java works differently and you know how
+to fix the program while continuing to use kb.nextLine() (to read
+an entire sentence) and without changing the order of the inputs
+then you can skip the rest of this document. If you are baffled
+by the behavior of Bart2.java then you need to read and understand
+what follows.
+
+
+THREE INVISIBLE ENTITIES
+To understand how Scanner works you need to be aware of three "invisible
+entities" that exist but cannot be seen:
+
+  newline character -- a character that marks the end of a line of input and
+     is generated when the user presses the "Enter" key. That is to say, when
+     you press "Enter" you are typing the newline character. That character
+     exists and gets stored along with all the stuff you typed before it.
+     We represent the newline character in Java using two characters: \n
+     (that is a backslash followed by the lowercase n).
+
+  input buffer -- a storage location in the computer's memory where characters
+     to be typed by the user are stored. Values get put in the input buffer
+     when the user types characters on the keyboard followed by the "Enter"
+     key. For example, if the user types p-i-e-<Enter> then the input buffer
+     gets: the characters "pie\n" added to it.
+
+  input buffer pointer -- a marker that keeps track of the next character in
+     the input buffer to be processed.
+
+
+NOTE: Each variable of type Scanner comes with its own input buffer and input
+buffer pointer.
+
+Suppose we have an input buffer with the following contents:
+
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| J | o | e | \n| 2 | 7 |   | 3 | . | 5 |   |   | 2 | 1 |   | B | y | e |   | 2 | \n| H | i | 2 | \n| ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+  ^
+
+We use the caret character underneath the buffer to indicate that the buffer
+pointer is initially pointing to the first character in the buffer. How did
+these characters get into the buffer? The user typed them, of course! (The
+user typed: Joe<Enter>27 3.5  21 Bye 2<Enter>Hi2<Enter>)
+
+We need to introduce a two more terms and then we'll be ready to move
+forward
+
+  whitespace -- one or more consecutive characters, which when printed on a white
+     page produce open space. Examples of whitespace character are: space bar,
+     the TAB key, the newline character, and the form feed character.
+
+  token -- a series of characters separated by whitespace
+
+If you inspect the input buffer above there are 7 tokens: Joe, 27, 3.5, 21, Bye,
+2, and Hi2
+
+NOTE: We have introduced 5 terms that we will use in the remainder of the
+document (newline character, input buffer, input buffer pointer, whitespace,
+token). These terms will be used in accordance with how they have been defined
+and don't have meaning in the following discussion apart from their definitions.
+If you need to refer back to these definitions as you read that's okay. The
+discussion won't make sense unless you understand these definitions.
+
+
+HOW SCANNER WORKS
+Now that we know about the three invisible entities and a couple of new terms we
+can talk about how Scanner actually works. The discussion that follows assume
+the following declarations and that when first prompted the user types in the
+values displayed in the buffer shown below:
+
+   Scanner kb= new Scanner(System.in);
+   int j;
+   double x;
+   String str;
+
+
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| J | o | e | \n| 2 | 7 |   | 3 | . | 5 |   |   | 2 | 1 |   | B | y | e |   | 2 | \n| H | i | 2 | \n| ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+  ^
+
+
+There are four Scanner commands we will consider:
+
+  kb.nextInt() -- Starting at the current location specified by the input buffer
+     pointer converts the next token to an int and returns it. If no error occurred
+     the buffer pointer will be advanced to the character in the buffer immediately
+     following the token that was converted. If the token it processed cannot be
+     converted to an int it will thrown an exception (i.e., cause the program to
+     crash ... unless you explicitly handle the exception) and the buffer
+     pointer will not be advanced. Because it grabs the next token it will skip any
+     leading whitespace and will stop when it encounters trailing whitespace (or
+     an empty buffer).
+
+  kb.nextDouble() -- This works exactly like kb.nextInt() except that it converts the
+     next token to a double (instead of an int).
+
+  kb.next() -- This works exactly like kb.nextInt() except that it returns the
+     next token as a String rather than converting it to an int.
+
+  kb.nextLine() -- THIS ONE IS DIFFERENT! Starting at the current location
+     specified by the input buffer pointer reads (and returns as a String) all
+     characters in the input buffer until a newline character is encountered.
+     When the newline character is encountered it is thrown away and the input
+     buffer pointer is left at the character following the newline character
+     that ended its action.
+
+
+SOME EXAMPLES
+Suppose we have the following input statements and in response the user enters
+the values in the buffer below:
+
+  str= kb.next();
+  j= kb.nextInt();
+  x= kb.nextDouble();
+  str= kb.nextLine();
+  str= kb.next();
+  j= kb.nextInt();
+
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| J | o | e | \n| 2 | 7 |   | 3 | . | 5 |   |   | 2 | 1 |   | B | y | e |   | 2 | \n| H | i | 2 | \n| ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+  ^
+
+You might try to trace it by hand first. Then see if your understanding of the commands
+matches the documentation added below:
+
+  str= kb.next();     // read next token "Joe" and puts it into str; pointer is at \n following Joe
+  j= kb.nextInt();    // read next token "27", convert to int, and put in j; pointer at space following 27
+  x= kb.nextDouble(); // read next token "3.5", convert to double, and put in x; pointer at first space following 3.5
+  str= kb.nextLine(); // read "  21 Bye 2" and store in str; pointer at "H"
+  str= kb.next();     // read next token "Hi2" and store in str; pointer at \n following Hi2
+  j= kb.nextInt();    // try to read next token (which doesn't exist); wait for user to enter something into the buffer
+
+
+Here's another possible sequence of Scanner commands. We'll assume the same input:
+
+  str= kb.next();     // read next token "Joe" and puts it into str; pointer is at \n following Joe
+  str= kb.nextLine(); // read \n character, throw it away, and put empty string into str; pointer at "2"
+  x= kb.nextDouble(); // read next token "27", convert to double, and put in x; pointer at first space following 27
+  j= kb.nextInt();    // read next token "3.5", convert to int --> error ... program crashes
+
+  // let's temporarily assume the above (crashing) statement didn't happen and continue
+  x= kb.nextDouble(); // read next token "3.5", convert to double, and put in x; pointer at first space following 3.5
+  j= kb.nextInt();    // read next token "21", convert to int, and put in j; pointer at space following 21
+
+  // NOTE: buffer contains leftover characters which will be read by any Scanner
+  // commands that follow
+
+
+BUT WHAT ABOUT BART?
+If we examine Bart1.java and Bart2.java in light of these facts we immediately
+see a difference.  In Bart1.java we prompt the user to enter a message and then
+issue:
+
+msg= kb.nextLine();
+
+Since the buffer is empty, Scanner waits for the user to type something. Suppose
+the user types "Hi there<Enter>" resulting in this buffer:
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| H | i |   | T | h | e | r | e | \n|   |   |   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+  ^
+
+The kb.nextLine() command reads everything up until the newline character, throws away
+the newline character and leave the input buffer pointer at the empty buffer following \n:
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| H | i |   | T | h | e | r | e | \n|   |   |   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+                                      ^
+
+Next we prompt the user to enter a number and issue:
+
+n= kb.nextInt();
+
+Since the buffer is empty Scanner waits for the user to put something in the buffer.
+
+Suppose the user types: 5<Enter>
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| H | i |   | T | h | e | r | e | \n| 5 | \n|   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+                                      ^
+
+kb.nextInt() grabs the next token (5), converts it to an int, stores it in "n" and
+leaves the input buffer pointer at the \n following 5:
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| H | i |   | T | h | e | r | e | \n| 5 | \n|   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+                                          ^
+
+The program runs to completion and ends with an extra \n in the input buffer
+(which causes no harm).
+
+
+Let's walk through Bart2.java:
+
+We prompt user to enter a number and then issue:
+
+n= kb.nextInt();
+
+The buffer is initially empty so Scanner waits for the user to put something
+in the buffer.  Suppose the user types: 5<Enter>
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| 5 | \n|   |   |   |   |   |   |   |   |   |   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+  ^
+
+kb.nextInt() grabs the next token (5), converts it to an int, stores it in "n" and
+leaves the input buffer pointer at the \n following 5:
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| 5 | \n|   |   |   |   |   |   |   |   |   |   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+      ^
+
+Next we prompt the user to enter a message and then issue:
+
+msg= kb.nextLine();
+
+This command reads all characters until it sees a newline character. Since there
+is already a newline character in the buffer it does not wait for the user to
+enter a string. Instead it stores all characters before the newline (in this
+case an empty string) in msg, throws away the newline, and leaves the input
+buffer pointer at the empty buffer following \n:
+
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+| 5 | \n|   |   |   |   |   |   |   |   |   |   | ..... |
++---+---+---+---+---+---+---+---+---+---+---+---+-- . --+
+          ^
+
+The program proceeds with a value of 5 for n and an empty string for msg causing
+the empty string to be printed 5 times.
+
+
+One way to fix the program is to recognize that after the kb.nextInt() there is
+an extra \n sitting in the buffer. If we simply remove that character from the
+buffer we can proceed with our program. One easy way to do that is to put an
+empty .nextLine() command following .nextInt() to absorb that character:
+
+  System.out.print("Enter how many times to display message: ");
+  n= kb.nextInt();
+  kb.nextLine();    // toss out leftover \n character
+
+  System.out.print("Enter message: ");
+  msg= kb.nextLine();
+

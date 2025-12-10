@@ -1,0 +1,13 @@
+modify
+racecar
+a
+bb
+aba
+abcdecba
+the
+palindrome
+java
+file
+so
+that
+array
